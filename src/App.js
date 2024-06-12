@@ -1,18 +1,18 @@
 import "./App.css";
 import { useEffect, useRef } from "react";
 import * as tf from "@tensorflow/tfjs";
-import * as bodypix from "@tensorflow-models/body-pix";
+import * as bodyPix from "@tensorflow-models/body-pix";
 import Webcam from "react-webcam";
 
 function App() {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
-  const runBodypix = async () => {
-    const net = await bodypix.load();
+  const runBodySegment = async () => {
+    const net = await bodyPix.load();
     setInterval(() => {
       detect(net);
-    }, 10);
+    }, 100);
   };
 
   const detect = async (net) => {
@@ -35,18 +35,29 @@ function App() {
    canvasRef.current.height=videoHeight
 
    //make detection
-   const  body=await net.estimatebodys(video)
+   const  person=await net.segmentPersonParts(video)
 
-   //draw mesh
-   const ctx=canvasRef.current.getContext('2d')
-    drawbody(body,ctx)
+   const coloredPartImage = bodyPix.toColoredPartMask(person)
+   const opacity = 0.7
+   const flipHorizontal = false
+   const maskBlurAmount = 0
+   const canvas = canvasRef.current
+
+   bodyPix.drawMask(
+     canvas,
+     video,
+     coloredPartImage,
+     opacity,
+     maskBlurAmount,
+     flipHorizontal
+   )
 
     }
   };
 
 useEffect(()=>{
 
-runBodypix()
+runBodySegment()
   //eslint-disable-next-line
 },[])
 
